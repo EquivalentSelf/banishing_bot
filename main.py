@@ -10,7 +10,7 @@ client_secret = os.environ['client_secret']
 
 reddit = praw.Reddit(client_id=client_id,
                      client_secret=client_secret,
-                     user_agent='BotquivalentSelf v1.0 (by EquivalentSelf)',
+                     user_agent='EquivalentAI v1.0',
                      username=reddit_username,
                      password=reddit_password)
 

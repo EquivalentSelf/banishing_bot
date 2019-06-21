@@ -1,0 +1,4 @@
+# Git will ignore the following files
+/data/*
+get_data.py
+test.py
