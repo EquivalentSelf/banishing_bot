@@ -12,12 +12,12 @@ import string
 from collections import defaultdict
 import face_recognition
 
-data_dir = os.path.dirname(os.path.abspath(__file__)) + '/data/' # gets directory script is being run from
+data_dir = os.path.dirname(os.path.abspath(__file__)) # gets directory script is being run from
 
-with open(data_dir + '/corpora/english_words.txt', encoding='latin1') as word_file: # opens file with list of common english words
+with open(data_dir + r'\corpora\english_words.txt', encoding='latin1') as word_file: # opens file with list of common english words
     english_words = set(word.strip().lower() for word in word_file) # adds the lower case version of each word to a set
 
-with open(data_dir + '/corpora/common_names.txt', encoding='latin1') as names_file: # opens file with list of common first names
+with open(data_dir + r'\corpora\common_names.txt', encoding='latin1') as names_file: # opens file with list of common first names
     common_names = set(name.strip().lower().translate(str.maketrans('', '', string.punctuation)) for name in names_file) # removes punctuation from names in file and adds them to a set
 
 def is_not_english_word(word):
@@ -56,23 +56,31 @@ def read_text(filepath):
     #         submission.report('Possible banned word {}'.format(word)) # report submission
 
     if re.compile(r'@([A-Za-z0-9_]+)').search(text): # if twitter username or email present
-        print('Possible identifying info: Twitter username or Email ID') # flags for above condition
+        twitter_ii = 'Twitter username or Email ID' # flags for above condition
+    else:
+        twitter_ii = ''
 
     clean_text = text.replace(r'\n', ' ') # replaces newline escapes with whitespace
     clean_text = ' '.join(clean_text.split()) # removes duplicate whitespace
     clean_text = clean_text.split() # creates list of whitespace separated words
 
-    maybe_usernames = [w for w in clean_text if len(w)>3] # removes words with less than 4 chars (unlikely to be usernames or names)
-    likely_usernames = [w for w in maybe_usernames if is_not_english_word(w)] # removes words in the english dictionary (same reason as above)
+    maybe_usernames = [w for w in clean_text if is_not_english_word(w)] # removes words in the english dictionary (unlikely to be usernames or names)
+    likely_usernames = [w for w in maybe_usernames if len(w)>3] # removes words with less than 4 chars (same reason as above)
     probably_usernames = [w for w in likely_usernames if not w.isdigit()] # removes numbers-only items (same reason again)
     should_be_usernames = [w for w in probably_usernames if re.search(r"[^a-zA-Z0-9\.\_\-]+", w) is None] # removes words with special characters except ., _, and - (you know the drill)
 
-    for name in probably_usernames: 
+    names_found = [] # creates list to append all found names
+    for name in maybe_usernames: 
         name.translate(str.maketrans('', '', string.punctuation)) # removes all punctuation from potential name
         if is_common_name(name): # if common name in cleaned text
-            print('Possible identifying info: First name')
+            names_found.append(name) # appends to list of found names
+    if names_found:
+        name_ii = 'First names found: {}'.format(', '.join(names_found))
+    else:
+        name_ii = ''
 
-    if len(should_be_usernames) <= 5: # if candidates <= 5 (to prevent overloading API)
+    username_ii = '' # instantiates initial string to append output to
+    if len(should_be_usernames) <= 10: # if candidates <= 5 (to prevent overloading API)
         platforms = [Platforms.INSTAGRAM, Platforms.SNAPCHAT, Platforms.TUMBLR, Platforms.YAHOO, Platforms.PINTEREST, Platforms.REDDIT] # platforms to check
         results = sync_execute_queries(should_be_usernames, platforms) # checks if username candidates are available on platforms
         
@@ -89,10 +97,11 @@ def read_text(filepath):
         for info in user_info:
             consolidated[info['username']].append(info['platform']) # aggregates info by user into a list and pins to a key
 
-        output_msg = 'Possible identifying info: ' # instantiates initial string to append output to
         for username in consolidated: # for each valid user in the list
-            add_on = "The name '{}' was found on: {}. ".format(username, ', '.join(consolidated[username])) # creates string with info on where the user was found
-            output_msg += add_on # appends user info to output string and moves to next username in dict
+            add_on = "The username '{}' was found on: {}. ".format(username, ', '.join(consolidated[username])) # creates string with info on where the user was found
+            username_ii += add_on # appends user info to output string and moves to next username in dict
+
+    return [twitter_ii, name_ii, username_ii]
 
 def find_faces(filepath):
     '''
@@ -102,19 +111,11 @@ def find_faces(filepath):
     face_identification_img = face_recognition.load_image_file(filepath) # opens image file as numpy array
     face_locations = face_recognition.face_locations(face_identification_img)
 
+    face_ii = ''
     if len(face_locations) > 0: # if the number of faces found is more than 0
         for face_location in face_locations:
             # Print the location of each face in this image
             top, right, bottom, left = face_location
-            print("Possible identifying info: Face located at pixel location Top: {}, Left: {}, Bottom: {}, Right: {}".format(top, left, bottom, right))
+            face_ii = "Face located at pixel location Top: {}, Left: {}, Bottom: {}, Right: {}".format(top, left, bottom, right)
 
-
-
-# files = 0
-# ii_files = 0
-# for filename in os.listdir(data_dir):
-#     if read_text(data_dir + filename):
-#         ii_files += 1
-#     files += 1
-
-# print('Accuracy is {}%'.format(ii_files/files))
+    return face_ii
