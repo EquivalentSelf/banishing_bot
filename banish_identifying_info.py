@@ -1,5 +1,8 @@
 #TODO: Banned words
 #TODO: Ensure only compatible image formats are allowed
+#TODO: youtube usernames
+#TODO: fuzzy algorithm for locations (https://gis.stackexchange.com/a/11456)
+#TODO: API limit
 
 from PIL import Image
 import pytesseract
@@ -15,13 +18,10 @@ import face_recognition
 current_dir = os.path.dirname(os.path.abspath(__file__)) # gets directory script is being run from
 
 with open(current_dir + r'\corpora\english_words.txt', encoding='latin1') as word_file: # opens file with list of common english words
-    english_words = set(word.strip().lower() for word in word_file) # adds the lower case version of each word to a set
+    english_words = set(word.lower().strip() for word in word_file) # adds the lower case version of each word to a set
 
 with open(current_dir + r'\corpora\common_names.txt', encoding='latin1') as names_file: # opens file with list of common first names
     common_names = set(name.strip().lower().translate(str.maketrans('', '', string.punctuation)) for name in names_file) # removes punctuation from names in file and adds them to a set
-
-with open(current_dir + r'\corpora\business_names.txt', encoding='latin1') as word_file: # opens file with list of business names
-    business_names = set(word.strip().lower() for word in word_file)
 
 def is_not_english_word(word):
     '''
@@ -36,13 +36,6 @@ def is_common_name(name):
     OUT: Boolean of if the string is a common name
     '''
     return name.lower() in common_names
-
-def is_not_business_name(business):
-    '''
-    IN: String that could be a business name
-    OUT: Boolean of if the string is a business name
-    '''
-    return not(business.lower() in business_names)
 
 def read_text(filepath):
     '''
@@ -75,14 +68,13 @@ def read_text(filepath):
     clean_text = clean_text.split() # creates list of whitespace separated words
 
     maybe_usernames = [w for w in clean_text if is_not_english_word(w)] # removes words in the english dictionary (unlikely to be usernames or names)
-    could_be_usernames = [w for w in clean_text if is_not_business_name(w)] # removes words that are company names (bruh)
-    likely_usernames = [w for w in could_be_usernames if len(w)>3] # removes words with less than 4 chars (same reason as above)
+    likely_usernames = [w for w in maybe_usernames if len(w)>3] # removes words with less than 4 chars (same reason as above)
     probably_usernames = [w for w in likely_usernames if not w.isdigit()] # removes numbers-only items (same reason again)
     should_be_usernames = [w for w in probably_usernames if re.search(r"[^a-zA-Z0-9\.\_\-]+", w) is None] # removes words with special characters except ., _, and - (you know the drill)
 
     names_found = [] # creates list to append all found names
-    for name in could_be_usernames: 
-        name.translate(str.maketrans('', '', string.punctuation)) # removes all punctuation from potential name
+    for name in maybe_usernames: 
+        name = name.translate(str.maketrans('', '', string.punctuation)) # removes all punctuation from potential name
         if is_common_name(name): # if common name in cleaned text
             names_found.append(name) # appends to list of found names
     if names_found:
@@ -92,7 +84,7 @@ def read_text(filepath):
 
     username_ii = '' # instantiates initial string to append output to
     if len(should_be_usernames) <= 10: # if candidates <= 5 (to prevent overloading API)
-        platforms = [Platforms.INSTAGRAM, Platforms.SNAPCHAT, Platforms.TUMBLR, Platforms.YAHOO, Platforms.PINTEREST, Platforms.REDDIT] # platforms to check
+        platforms = [Platforms.INSTAGRAM, Platforms.SNAPCHAT, Platforms.TUMBLR, Platforms.YAHOO, Platforms.REDDIT] # platforms to check
         results = sync_execute_queries(should_be_usernames, platforms) # checks if username candidates are available on platforms
         
         user_info = [] # makes list to store the queried word's results

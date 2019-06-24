@@ -1,0 +1,9 @@
+name: banishing_bot
+dependencies:
+  - python=3.7.4
+  - pip:
+    - socialscan
+    - opencv-python
+    - pytesseract
+    - praw
+    - face_recognition

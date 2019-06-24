@@ -2,3 +2,6 @@
 /data/*
 get_data.py
 test.py
+/.vscode/*
+experiment.py
+/__pycache__/*
