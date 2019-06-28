@@ -19,9 +19,11 @@ current_dir = os.path.dirname(os.path.abspath(__file__)) # gets directory script
 
 with open(current_dir + r'\corpora\english_words.txt', encoding='latin1') as word_file: # opens file with list of common english words
     english_words = set(word.lower().strip() for word in word_file) # adds the lower case version of each word to a set
+word_file.close()
 
 with open(current_dir + r'\corpora\common_names.txt', encoding='latin1') as names_file: # opens file with list of common first names
     common_names = set(name.strip().lower().translate(str.maketrans('', '', string.punctuation)) for name in names_file) # removes punctuation from names in file and adds them to a set
+names_file.close()
 
 def is_not_english_word(word):
     '''
