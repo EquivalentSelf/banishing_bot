@@ -1,6 +1,7 @@
 name: banishing_bot
 dependencies:
   - python=3.7.4
+  - pip
   - pip:
     - socialscan
     - opencv-python
