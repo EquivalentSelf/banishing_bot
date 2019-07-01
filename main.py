@@ -6,9 +6,8 @@ import re
 import importlib
 import pickle
 
-pm_interface = importlib.import_module('pm_interface.py')
-ocr_mod = importlib.import_module('ocr.py')
-thresh_remove = importlib.import_module('threshold_remove.py')
+import pm_interface
+import banish_identifying_info as bii 
 
 # Retrieve heroku env variables
 reddit_username = os.environ['reddit_username']
@@ -18,35 +17,34 @@ client_secret = os.environ['client_secret']
 
 reddit = praw.Reddit(client_id=client_id,
                      client_secret=client_secret,
-                     user_agent='EquivalentBot v1.0 (by EquivalentSelf)',
+                     user_agent='EquivalentAI v1.0',
                      username=reddit_username,
                      password=reddit_password)
 
-param_ls_full = ['sub', 'banned words scan', 'post threshold remove', 'comment threshold remove', 
-'n posts', 'banned words', 'posts removal reason', ''] # lists all parameters of the bot (optional included)
+param_ls_full = ['subreddit_name', 'faces_check'] # lists all parameters of the bot (optional included)
 
-sub_name = param_ls_full[0]
-ocr_bool = param_ls_full[1]
-post_thresh_bool = param_ls_full[2]
-comment_thresh_bool = param_ls_full[3]
+subreddit_name = param_ls_full[0]
+face_check = param_ls_full[1]
 
-param_ls_reqd = [sub_name, ocr_bool] # lists all required parameters
+param_ls_reqd = [subreddit_name] # lists all required parameters
 
-new_configs = []
+unread_configs = []
 for message in reddit.inbox.unread():
-    invite_info = pm_interface.accept_mod_invites(reddit, message)
+    pmi = pm_interface.Interface(reddit, message)
+
+    invite_info = pmi.accept_mod_invites()
     if invite_info != True: # if invalid invite
         print(invite_info)
+        continue # skips to next iteration
+
+    unread_config = pmi.extract_sub_config(param_ls_full)
+    if type(unread_config) == str: # if error message is returned (lazy code, I know)
+        print(unread_config)
         continue
 
-    config_info = pm_interface.get_sub_config(reddit, message, param_ls_full, param_ls_reqd, sub_name)
-    if type(config_info) != list: # if error message is returned
-        print(config_info)
-        continue
-
-    check_info = pm_interface.check(reddit, config_info)
+    check_info = pmi.check_and_correct(unread_config, subreddit_name)
     if check_info: # if there are no failed checks
-        new_configs.append(config_info)
+        unread_configs.append(unread_config)
     else:
         print(check_info)
         continue
@@ -57,9 +55,9 @@ with open('local_configs.txt', 'rb+') as f:
     except EOFError: # if pickle file is empty
         local_configs = []
 
-    for n_config in new_configs:
+    for n_config in unread_configs:
         for l_config in local_configs:
-            if n_config[sub_name] == l_config[sub_name]: # if the same sub has sent another config
+            if n_config[subreddit_name] == l_config[subreddit_name]: # if the same sub has sent another config
                 local_configs[local_configs.index(l_config)] = n_config # updates local_config
                 new_configs.remove(n_config) # removes item from new_configs
     for n_config in new_configs:
@@ -68,10 +66,8 @@ with open('local_configs.txt', 'rb+') as f:
     pickle.dump(local_configs)
 
 for updated_config in local_configs:
-    sub = updated_config[sub_name]
-    ocr_val = updated_config[ocr_bool]
-    post_thresh_val = updated_config[post_thresh_bool]
-    comment_thresh_val = updated_config[comment_thresh_bool]
+    sub = updated_config[subreddit_name]
+    face_check_val = updated_config[face_check]
     # n_posts = updated_config[]
     # if n_posts >= 1000: n_posts = None
     # banned_words = updated_config[]

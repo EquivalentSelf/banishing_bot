@@ -5,96 +5,106 @@ import re
 import praw
 from prawcore import NotFound
 
-def accept_mod_invites(reddit, message):
-    if message.body.startswith('**gadzooks!'):
-        sub = reddit.get_info(thing_id=message.subreddit.fullname)
-        try:
-            sub.accept_moderator_invite()
-            return True
-        except:
-            error = 'Invalid invite.'
-            return error
-        message.mark_as_read()
+class Interface:
+    def __init__(self, reddit, message):
+        self.reddit = reddit
+        self.message = message
 
-def get_sub_config(reddit, message, param_ls_full):
-    configs = []
-    if message.subject.lower() == '!settings':
-        pm = message.body  # gets message body
-        pm = pm.replace('\n', ' ').replace('\r', '')  # removes new lines
-        pm = ''.join(pm.split()) # removes all whitespace
+    def accept_mod_invites(self):
+        if self.message.body.startswith('**gadzooks!'):
+            sub = self.reddit.get_info(thing_id=self.message.subreddit.fullname)
+            try:
+                sub.accept_moderator_invite()
+                return True
+            except:
+                invalid_invite_check = 'Invalid invite.'
+                return invalid_invite_check
+            self.message.mark_as_read()
 
-        try:
-            user_args = re.findall(r"\{([^}]*)\}", pm) # finds everything between curly braces
-        except AttributeError:
-            error = 'Incorrect formatting: No curly braces found.'
-            return error
+    def extract_sub_config(self, param_ls_full):
+        '''
+        INPUT: Full list parameters
+        OUTPUT: Formatting error messages or user config (values not checked)
+        '''
+        if self.message.subject.lower() == '!settings':
+            pm = self.message.body  # gets message body
+            pm = pm.replace('\n', ' ').replace('\r', '')  # removes new lines
+            pm = ''.join(pm.split()) # removes all whitespace
 
-        config = {} # creates dict of chosen config to return from function
+            curly_check = ''
+            try:
+                user_args = re.findall(r"\{([^}]*)\}", pm) # finds everything between curly braces and adds to list
+            except AttributeError:
+                curly_check = 'Incorrect formatting: No curly braces found.'
 
-        for user_arg in user_args:
-            user_arg = user_arg.lower()
-            for system_param in param_ls_full:
-                system_param = system_param.lower()
-                user_param = user_arg[:len(system_param)]
-                if system_param == user_param:
-                    if user_arg[len(system_param)] == '=': # if there's an equals sign
-                        user_setting = user_arg[len(system_param)+1:] # user specified setting is taken as anything beyond equals
-                        config[system_param] = user_setting
-                    else:
-                        config = config.clear() # clears all items from dict
-                        error = 'Incorrect formatting: "Equals" symbol (=) is not in the right place.'
-                        return error
-        
-        configs.append(config) # appends sub's config to final list to be checked out
- 
-    message.mark_read()
-    return [config for config in configs if config] # returns config with empty dicts removed
+            config = {} # creates dict of chosen config to return from function
 
-def check(reddit, config, param_ls_full, param_ls_reqd, sub_name):
-    '''
-    INPUT: Reddit instance, single config
-    OUTPUT: True or False depending on whether config passes or fails the check
-    '''
-    if set(list(config)).issubset(param_ls_reqd) == False: # if all required parameters are not in the config
-        error = 'Incorrect value: All required settings have not been provided and/or at least one has been misspelled.'
-        return error
+            equals_check = ''
+            for user_arg in user_args:
+                user_arg = user_arg.lower() # lower-cases user argument
+                for system_param in param_ls_full:
+                    system_param = system_param.lower() # lower-cases parameter (just in case)
+                    user_param = user_arg[:len(system_param)] # gets setting by user for parameter
+                    if system_param == user_param:
+                        if user_arg[len(system_param)] == '=': # if there's an equals sign in the right place
+                            user_setting = user_arg[len(system_param)+1:] # user specified setting is taken as anything beyond equals
+                            config[system_param] = user_setting # adds to configuration dict with system parameter as key
+                        else:
+                            config = config.clear() # clears all items from dict
+                            equals_check = 'Incorrect formatting: "Equals" symbol (=) is not in the right place.'    
+        self.message.mark_read()
 
-    for param in config:
-        setting = config[param]
-        if param == sub_name:
-            if setting[:3] == '/r/':
-                setting = setting.replace(param[:3], '') # removes /r/, if present
-            elif setting[:2] == 'r/':
-                setting = setting.replace(param[:2], '') # removes r/, if present
+        if curly_check or equals_check:
+            return curly_check + '\n' + equals_check
         else:
-            if setting == 'yes':
-                setting = True
-            elif setting == 'no':
-                setting = False
+            return config # returns config
+
+    def check_and_correct(self, config, param_ls_full, param_ls_reqd, sub_name_param):
+        '''
+        INPUT: Single config, list of all parameters, list of mandatory parameters, element in sys param list that represents the sub name
+        OUTPUT: Error message if config fails the check
+        '''
+        all_params_check = ''
+        other_settings_check = ''
+        sub_exist_check = ''
+        sub_mod_check = ''
+        req_perm_check = ''
+
+        if set(list(config)).issubset(param_ls_reqd) == False: # if all required parameters are not in the config
+            all_params_check = 'Incorrect value: All required settings have not been provided and/or at least one has been misspelled.'
+
+        for param in config: # translates to a standard format
+            setting = config[param]
+            if param == sub_name_param: # if the field is for the subreddit name
+                if setting[:3] == '/r/':
+                    setting = setting.replace(param[:3], '') # removes /r/, if present
+                elif setting[:2] == 'r/':
+                    setting = setting.replace(param[:2], '') # removes r/, if present
             else:
-                error = 'Incorrect value: The setting for parameter "{}" is not a "yes" or "no".'.format(param)
-                return error
+                if setting == 'enable':
+                    setting = True # makes boolean
+                elif setting == 'disable':
+                    setting = False
+                else:
+                    other_settings_check = 'Incorrect value: The setting for "{}" is not "enable" or "disable".'.format(param)
 
-    sub = config[sub_name] # gets sub name from dict
-    try:
-        reddit.subreddits.search_by_name(sub, exact=True)
-    except NotFound: # if sub does not exist
-        error = 'Incorrect value: The specified subreddit does not exist.'
-        return error
-    
-    sub_mods = reddit.subreddit(sub).moderator() # makes list of sub's mods
-    equi_bot = praw.models.Redditor(reddit, name='EquivalentBot')
-    if equi_bot not in sub_mods: # if not a sub mod
-        error = 'Insufficient permissions: EquivalentBot has not been added as a moderator yet.'
-        return error
+        sub = config[sub_name_param] # gets sub name from dict
+        try:
+            self.reddit.subreddits.search_by_name(sub, exact=True)
+        except NotFound: # if sub does not exist
+            sub_exist_check = 'Incorrect value: The specified subreddit does not exist.'
+        
+        sub_mods = self.reddit.subreddit(sub).moderator() # makes list of sub's mods
+        banishing_bot = praw.models.Redditor(self.reddit, name='banishing_bot')
+        if banishing_bot not in sub_mods: # if not a sub mod
+            sub_mod_check = 'Insufficient permissions: banishing_bot has not been added as a moderator yet.'
 
-    for mod in sub_mods:
-        if mod == equi_bot:
-            perms = mod.mod_permissions
-            reqd_perms = ['posts', 'mail']
-            for req_perm in reqd_perms:
-                if req_perm not in perms: # if required perms are not given
-                    error = 'Insufficient permissions: EquivalentBot has not been given "{}" perms.'.format(req_perm)
-                    return error
-                    
-    return True
+        for mod in sub_mods:
+            if mod == banishing_bot:
+                perms = mod.mod_permissions
+                reqd_perms = ['posts', 'mail']
+                for req_perm in reqd_perms:
+                    if req_perm not in perms: # if required perms are not given
+                        req_perm_check = 'Insufficient permissions: banishing_bot has not been given "{}" perms.'.format(req_perm)
+
+        return [all_params_check, other_settings_check, sub_exist_check, sub_mod_check, req_perm_check]

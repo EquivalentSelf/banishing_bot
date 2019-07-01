@@ -3,6 +3,7 @@
 #TODO: youtube usernames
 #TODO: fuzzy algorithm for locations (https://gis.stackexchange.com/a/11456)
 #TODO: API limit
+#TODO: allow crossposts
 
 from PIL import Image
 import pytesseract
@@ -61,9 +62,7 @@ def read_text(filepath):
     #         submission.report('Possible banned word {}'.format(word)) # report submission
 
     if re.compile(r'@([A-Za-z0-9_]+)').search(text): # if twitter username or email present
-        twitter_ii = 'Twitter username or Email ID' # flags for above condition
-    else:
-        twitter_ii = ''
+        return 'Twitter username or Email ID' # flags for above condition
 
     clean_text = text.replace(r'\n', ' ') # replaces newline escapes with whitespace
     clean_text = ' '.join(clean_text.split()) # removes duplicate whitespace
@@ -80,11 +79,9 @@ def read_text(filepath):
         if is_common_name(name): # if common name in cleaned text
             names_found.append(name) # appends to list of found names
     if names_found:
-        name_ii = 'First names found: {}'.format(', '.join(names_found))
-    else:
-        name_ii = ''
+        return 'First names found: {}'.format(', '.join(names_found))
 
-    username_ii = '' # instantiates initial string to append output to
+    usernames_found = '' # instantiates initial string to append output to
     if len(should_be_usernames) <= 10: # if candidates <= 5 (to prevent overloading API)
         platforms = [Platforms.INSTAGRAM, Platforms.SNAPCHAT, Platforms.TUMBLR, Platforms.YAHOO, Platforms.REDDIT] # platforms to check
         results = sync_execute_queries(should_be_usernames, platforms) # checks if username candidates are available on platforms
@@ -104,9 +101,10 @@ def read_text(filepath):
 
         for username in consolidated: # for each valid user in the list
             add_on = "The username '{}' was found on: {}. ".format(username, ', '.join(consolidated[username])) # creates string with info on where the user was found
-            username_ii += add_on # appends user info to output string and moves to next username in dict
+            usernames_found += add_on # appends user info to output string and moves to next username in dict
 
-    return [twitter_ii, name_ii, username_ii]
+        if usernames_found:
+            return usernames_found
 
 def find_faces(filepath):
     '''
@@ -116,11 +114,8 @@ def find_faces(filepath):
     face_identification_img = face_recognition.load_image_file(filepath) # opens image file as numpy array
     face_locations = face_recognition.face_locations(face_identification_img)
 
-    face_ii = ''
     if len(face_locations) > 0: # if the number of faces found is more than 0
         for face_location in face_locations:
             # Print the location of each face in this image
             top, right, bottom, left = face_location
-            face_ii = "Face located at pixel location Top: {}, Left: {}, Bottom: {}, Right: {}".format(top, left, bottom, right)
-
-    return face_ii
+            return "Face located at pixel location Top: {}, Left: {}, Bottom: {}, Right: {}".format(top, left, bottom, right)
