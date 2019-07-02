@@ -120,4 +120,4 @@ def find_faces(filepath):
         for face_location in face_locations:
             # Print the location of each face in this image
             top, right, bottom, left = face_location
-            return "Face located at pixel location Top: {}, Left: {}, Bottom: {}, Right: {}".format(top, left, bottom, right)
+            return "Face found at Top: {}, Left: {}, Bottom: {}, Right: {}.".format(top, left, bottom, right)
