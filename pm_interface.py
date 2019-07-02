@@ -1,14 +1,16 @@
-#TODO: Instead of breaking by using "return" on each error, append all errors and then output
 #TODO: Add check for required parameters not being provided
+#TODO: Test if edits to dictionary here affects main
 
 import re
 import praw
 from prawcore import NotFound
 
 class Interface:
-    def __init__(self, reddit, message):
+    def __init__(self, reddit, message, param_ls_full, param_ls_reqd):
         self.reddit = reddit
         self.message = message
+        self.param_ls_full = param_ls_full
+        self.param_ls_reqd = self.param_ls_reqd
 
     def accept_mod_invites(self):
         if self.message.body.startswith('**gadzooks!'):
@@ -21,7 +23,7 @@ class Interface:
                 return invalid_invite_check
             self.message.mark_as_read()
 
-    def extract_sub_config(self, param_ls_full):
+    def extract_sub_config(self):
         '''
         INPUT: Full list parameters
         OUTPUT: Formatting error messages or user config (values not checked)
@@ -42,7 +44,7 @@ class Interface:
             equals_check = ''
             for user_arg in user_args:
                 user_arg = user_arg.lower() # lower-cases user argument
-                for system_param in param_ls_full:
+                for system_param in self.param_ls_full:
                     system_param = system_param.lower() # lower-cases parameter (just in case)
                     user_param = user_arg[:len(system_param)] # gets setting by user for parameter
                     if system_param == user_param:
@@ -59,7 +61,7 @@ class Interface:
         else:
             return config # returns config
 
-    def check_and_correct(self, config, param_ls_full, param_ls_reqd, sub_name_param):
+    def check_and_correct(self, config, sub_name_param, reqd_perms):
         '''
         INPUT: Single config, list of all parameters, list of mandatory parameters, element in sys param list that represents the sub name
         OUTPUT: Error message if config fails the check
@@ -70,7 +72,7 @@ class Interface:
         sub_mod_check = ''
         req_perm_check = ''
 
-        if set(list(config)).issubset(param_ls_reqd) == False: # if all required parameters are not in the config
+        if set(list(config)).issubset(self.param_ls_reqd) == False: # if all required parameters are not in the config
             all_params_check = 'Incorrect value: All required settings have not been provided and/or at least one has been misspelled.'
 
         for param in config: # translates to a standard format
@@ -102,7 +104,6 @@ class Interface:
         for mod in sub_mods:
             if mod == banishing_bot:
                 perms = mod.mod_permissions
-                reqd_perms = ['posts', 'mail']
                 for req_perm in reqd_perms:
                     if req_perm not in perms: # if required perms are not given
                         req_perm_check = 'Insufficient permissions: banishing_bot has not been given "{}" perms.'.format(req_perm)

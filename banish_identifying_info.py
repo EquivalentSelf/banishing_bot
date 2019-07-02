@@ -4,6 +4,8 @@
 #TODO: fuzzy algorithm for locations (https://gis.stackexchange.com/a/11456)
 #TODO: API limit
 #TODO: allow crossposts
+#TODO: allow op name
+#TODO: allow verified users
 
 from PIL import Image
 import pytesseract
@@ -43,7 +45,7 @@ def is_common_name(name):
 def read_text(filepath):
     '''
     IN: Path to image to be analyzed
-    OUT: 
+    OUT: Message with analysis of post wrt identifying info
     '''
     img = cv2.imread(filepath) # opens image
     img = cv2.resize(img, None, fx=1.5, fy=1.5, interpolation=cv2.INTER_CUBIC) # resizes by 1.5x to help with OCR
@@ -100,8 +102,8 @@ def read_text(filepath):
             consolidated[info['username']].append(info['platform']) # aggregates info by user into a list and pins to a key
 
         for username in consolidated: # for each valid user in the list
-            add_on = "The username '{}' was found on: {}. ".format(username, ', '.join(consolidated[username])) # creates string with info on where the user was found
-            usernames_found += add_on # appends user info to output string and moves to next username in dict
+            add_on = "The username '{}' was found on: {}.\n".format(username, ', '.join(consolidated[username])) # creates string with info on where the user was found
+            usernames_found += add_on + '\n' # appends user info to output string and moves to next username in dict
 
         if usernames_found:
             return usernames_found
