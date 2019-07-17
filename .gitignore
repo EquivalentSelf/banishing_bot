@@ -1,8 +1,8 @@
 # Git will ignore the following files
-/data/*
+/test/*
 get_data.py
-test.py
 /.vscode/*
 experiment.py
 /__pycache__/*
 post_images.py
+.pylintrc
