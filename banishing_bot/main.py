@@ -5,7 +5,6 @@
 import praw
 import os
 import re
-import pickle
 import posixpath
 import urllib.parse
 import time
