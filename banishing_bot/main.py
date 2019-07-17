@@ -126,13 +126,15 @@ while True: # loops back around to keep streams running
                     if text_report is not None: # if a report was output by the function
                         if len(text_report) > 100: # reports greater than 100 characters long throw exceptions
                             text_report = text_report[:97] + '...' # trims report and adds ellipsis
-                        submission.report(text_report)
+                        # submission.report(text_report)
+                        print(url+text_report)
 
                     print('Scanning post for faces...')
                     if face_check_val is not None: # if a face was found by the function
                         face_report = bii.find_faces(filename)
                         if face_report:
-                            submission.report(face_report)
+                            # submission.report(face_report)
+                            print(url+face_report)
 
                     os.remove(filename)
 
