@@ -17,7 +17,7 @@ import re
 from socialscan.util import Platforms, sync_execute_queries
 import string
 from collections import defaultdict
-import face_recognition
+# import face_recognition
 import itertools
 import requests
 import json
@@ -121,16 +121,16 @@ def read_text(filepath, platforms_val, subreddit_check_val, banned_words_val):
         if [username for username in consolidated]:
             return found_message
 
-def find_faces(filepath):
-    '''
-    IN: Path to image to be analyzed
-    OUT: Coordinates of identified face (if any) on the image
-    '''
-    face_identification_img = face_recognition.load_image_file(filepath) # opens image file as numpy array
-    face_locations = face_recognition.face_locations(face_identification_img)
+# def find_faces(filepath):
+#     '''
+#     IN: Path to image to be analyzed
+#     OUT: Coordinates of identified face (if any) on the image
+#     '''
+#     face_identification_img = face_recognition.load_image_file(filepath) # opens image file as numpy array
+#     face_locations = face_recognition.face_locations(face_identification_img)
 
-    if len(face_locations) > 0: # if the number of faces found is more than 0
-        for face_location in face_locations:
-            # Print the location of each face in this image
-            top, right, bottom, left = face_location
-            return "Face found at Top: {}, Left: {}, Bottom: {}, Right: {}.".format(top, left, bottom, right)
+#     if len(face_locations) > 0: # if the number of faces found is more than 0
+#         for face_location in face_locations:
+#             # Print the location of each face in this image
+#             top, right, bottom, left = face_location
+#             return "Face found at Top: {}, Left: {}, Bottom: {}, Right: {}.".format(top, left, bottom, right)

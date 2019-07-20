@@ -3,6 +3,7 @@
 import psycopg2
 import time
 import praw
+import os
 
 DATABASE_URL = os.environ['DATABASE_URL']
 

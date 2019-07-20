@@ -35,16 +35,17 @@ reddit = praw.Reddit(client_id=client_id,
 
 print('Running...')
 
-param_ls = ['subreddit_name', 'faces_check', 'platforms', 'subreddit_check', 'banned_words'] # lists all parameters of the bot
+param_ls = ['subreddit_name', 'banned_words', 'platforms', 'subreddit_check'] # lists all parameters of the bot
+# param_ls = ['subreddit_name', 'banned_words', 'platforms', 'subreddit_check', 'faces_check']
 optional_param_ls = ['subreddit_check', 'banned_words'] # lists optional params
 param_ls_reqd = list(set(param_ls) - set(optional_param_ls)) # sets reqd perms as not optional params
 reqd_perms = ['posts'] # lists required permissions
 
 subreddit_name_param = param_ls[0]
-face_check_param = param_ls[1]
+banned_words_param = param_ls[1]
 platforms_param = param_ls[2]
 subreddit_check_param = param_ls[3]
-banned_words_param = param_ls[4]
+# face_check_param = param_ls[4]
 
 last_scan = None
 while True: # loops back around to keep streams running
@@ -99,7 +100,7 @@ while True: # loops back around to keep streams running
             
             if relevant_config: # if the sub has added a config
                 platforms_val = relevant_config[platforms_param] # gets platforms to check for II
-                face_check_val = relevant_config[face_check_param] # gets face check value
+                # face_check_val = relevant_config[face_check_param] # gets face check value
                 try: # optional parameters raise an error
                     subreddit_check_val = relevant_config[subreddit_check_param] # gets sub name check param
                 except KeyError:
@@ -128,12 +129,12 @@ while True: # loops back around to keep streams running
                         # submission.report(text_report)
                         print(url+text_report)
 
-                    print('Scanning post for faces...')
-                    if face_check_val is not None: # if a face was found by the function
-                        face_report = bii.find_faces(filename)
-                        if face_report:
-                            # submission.report(face_report)
-                            print(url+face_report)
+                    # print('Scanning post for faces...')
+                    # if face_check_val is not None: # if a face was found by the function
+                    #     face_report = bii.find_faces(filename)
+                    #     if face_report:
+                    #         # submission.report(face_report)
+                    #         print(url+face_report)
 
                     os.remove(filename)
 
