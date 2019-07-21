@@ -3,6 +3,6 @@
 get_data.py
 /.vscode/*
 experiment.py
-/__pycache__/*
 post_images.py
 .pylintrc
+/banishing_bot/__pycache__/*
