@@ -23,6 +23,12 @@ client_id = os.environ['client_id']
 client_secret = os.environ['client_secret']
 user_agent = os.environ['user_agent']
 
+print(reddit_username)
+print(reddit_password)
+print(client_id)
+print(client_secret)
+print(user_agent)
+
 reddit = praw.Reddit(client_id=client_id,
                      client_secret=client_secret,
                      user_agent=user_agent,
