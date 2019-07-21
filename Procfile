@@ -1,0 +1,1 @@
+worker: python banishing_bot/banishing_bot.py
