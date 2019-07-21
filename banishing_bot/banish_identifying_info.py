@@ -24,7 +24,7 @@ import json
 
 current_dir = os.path.dirname(os.path.abspath(__file__)) # gets directory script is being run from
 
-with open(r'/corpora/words_master_list.txt', encoding='latin1') as word_file: # opens file with list of common english words
+with open(current_dir+r'/corpora/words_master_list.txt', encoding='latin1') as word_file: # opens file with list of common english words
     stop_words = set(word.lower().strip() for word in word_file) # adds the lower case version of each word to a set
 
 def read_text(filepath, platforms_val, subreddit_check_val, banned_words_val):
