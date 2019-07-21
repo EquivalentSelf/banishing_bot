@@ -10,15 +10,11 @@ import urllib.parse
 import time
 import itertools
 import numpy as np
-from flask import Flask
 import psycopg2
 
 import pm_interface
 import banish_identifying_info as bii
 from db_interface import send_and_receive_configs
-
-app = Flask(__name__)
-app.run(os.environ.get('PORT'))
 
 # Retrieves heroku env variables
 reddit_username = os.environ['reddit_username']
