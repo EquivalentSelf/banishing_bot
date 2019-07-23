@@ -23,12 +23,6 @@ client_id = os.environ['client_id']
 client_secret = os.environ['client_secret']
 user_agent = os.environ['user_agent']
 
-print(reddit_username)
-print(reddit_password)
-print(client_id)
-print(client_secret)
-print(user_agent)
-
 reddit = praw.Reddit(client_id=client_id,
                      client_secret=client_secret,
                      user_agent=user_agent,
@@ -58,7 +52,8 @@ while True: # loops back around to keep streams running
         error_message_contents = [] # creates list for storing all error messages
         pmi = pm_interface.Interface(reddit, message, param_ls, param_ls_reqd, subreddit_check_param) # initializes PM interface
         message_author = reddit.redditor(message.author.name) # gets sender of PM
-
+        
+        unread_config = []
         if message.body.startswith('**gadzooks!'): # if mod invite
             invite_info = pmi.accept_mod_invites() # try to accept the invite
             if isinstance(invite_info, str): # if invalid invite (lazy code)
