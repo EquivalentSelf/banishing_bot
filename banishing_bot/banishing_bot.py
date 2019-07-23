@@ -81,6 +81,7 @@ while True: # loops back around to keep streams running
     
         message.mark_read()
 
+    local_configs = []
     if unread_configs:
         print('Reading and updating local configurations...')
         local_configs = send_and_receive_configs(reddit, unread_configs, subreddit_name_param)
