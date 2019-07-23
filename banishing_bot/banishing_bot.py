@@ -47,18 +47,19 @@ last_scan = None
 while True: # loops back around to keep streams running
     print('Monitoring inbox...')
     unread_configs = []
-    for message in reddit.inbox.messages(limit=None): # gets inbox messages
-        print(message.body)
+    for message in reddit.inbox.unread(limit=None): # gets inbox messages
         error_message_contents = [] # creates list for storing all error messages
         pmi = pm_interface.Interface(reddit, message, param_ls, param_ls_reqd, subreddit_check_param) # initializes PM interface
         message_author = reddit.redditor(message.author.name) # gets sender of PM
         
         unread_config = []
         if message.body.startswith('**gadzooks!'): # if mod invite
+            print(message.body)
             invite_info = pmi.accept_mod_invites() # try to accept the invite
             if isinstance(invite_info, str): # if invalid invite (lazy code)
                 error_message_contents.append(invite_info) # adds to error list
         elif message.subject.lower() == '!settings':
+            print(message.body)
             unread_config_info = pmi.extract_sub_config() # extracts sub config
             if unread_config_info[1]: # if there are errors
                 unread_config = [] # sets unread configs as empty (as if there are no new configs)
@@ -78,7 +79,7 @@ while True: # loops back around to keep streams running
                 error_message_contents = list(itertools.chain.from_iterable(error_message_contents)) # flattens list
             message_author.message('banishing_bot: Error in your PM.', '\n'.join(error_message_contents)) # PMs error messages on a line each
     
-        last_scan = time.time() # sets last scan as the current time
+        message.mark_read()
 
     if unread_configs:
         print('Reading and updating local configurations...')

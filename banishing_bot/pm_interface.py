@@ -67,7 +67,6 @@ class Interface:
 
         error_checks = []
         if set(self.param_ls_reqd).issubset(set(list(config))) == False: # if all required parameters are not in the config
-            print('FALSE')
             error_checks.append('Incorrect value: All required settings have not been provided and/or at least one has been misspelled.')
             return [config, error_checks] # can't go on with checks without all required settings provided
 
