@@ -13,10 +13,12 @@ def receive_configs():
     OUTPUT: Config list with the lastest timestamp
     '''
     sql_query = """
+    --sql
     SELECT local_config
     FROM local_configs
     ORDER BY created_time desc 
     LIMIT 1
+    --endsql
     """
     conn = None
     try:
@@ -38,6 +40,7 @@ def send_configs(time, configs):
     OUTPUT: nothing
     '''
     sql_query = """
+        --sql
         INSERT INTO local_configs (created_time, local_config)
         VALUES ({}, '{}');
         """
