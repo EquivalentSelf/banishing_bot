@@ -95,7 +95,6 @@ while True: # loops back around to keep streams running
         for submission in reddit.subreddit(subs_to_monitor_str).mod.unmoderated(limit=None): # gets unmod queue items
             if last_scan is not None and submission.created_utc < last_scan: # if submission was made before the last scan, exits the loop
                 break
-
             relevant_config = next((config for config in local_configs if config[subreddit_name_param] == str(submission.subreddit).lower()), False) # gets config for the sub from which the post came
             
             if relevant_config: # if the sub has added a config
@@ -111,6 +110,7 @@ while True: # loops back around to keep streams running
                     banned_words_val = []
 
                 url = submission.url # gets submission url
+                print(url)
                 IMAGE_EXTS = {'.png', '.jpg', '.jpeg', '.bmp', '.tiff'} # lists compatible formats
                 if posixpath.splitext(urllib.parse.urlparse(url).path)[1] in IMAGE_EXTS: # if compatible format
                     try:
