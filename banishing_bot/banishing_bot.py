@@ -48,6 +48,8 @@ while True: # loops back around to keep streams running
     print('Monitoring inbox...')
     unread_configs = []
     for message in reddit.inbox.unread(limit=None): # gets inbox messages
+        print(message)
+
         error_message_contents = [] # creates list for storing all error messages
         pmi = pm_interface.Interface(reddit, message, param_ls, param_ls_reqd, subreddit_check_param) # initializes PM interface
         message_author = reddit.redditor(message.author.name) # gets sender of PM
@@ -81,7 +83,7 @@ while True: # loops back around to keep streams running
     
         message.mark_read()
 
-    local_configs = []
+    print('unread', unread_configs)
     print('Reading and updating local configurations...')
     local_configs = send_and_receive_configs(reddit, unread_configs, subreddit_name_param)
 
