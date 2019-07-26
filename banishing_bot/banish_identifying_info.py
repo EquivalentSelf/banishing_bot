@@ -81,7 +81,6 @@ def read_text(filepath, platforms_val, subreddit_check_val, banned_words_val):
             print(e)
             time.sleep(2)
             pass
-    print('username cands', username_candidates)
 
     if len(username_candidates) <= 10: # if candidates <= 10 (to prevent overloading API)
         platforms = [] # platforms to check

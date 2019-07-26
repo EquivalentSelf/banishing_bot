@@ -82,9 +82,8 @@ while True: # loops back around to keep streams running
         message.mark_read()
 
     local_configs = []
-    if unread_configs:
-        print('Reading and updating local configurations...')
-        local_configs = send_and_receive_configs(reddit, unread_configs, subreddit_name_param)
+    print('Reading and updating local configurations...')
+    local_configs = send_and_receive_configs(reddit, unread_configs, subreddit_name_param)
 
     if local_configs:
         print('Monitoring multireddit...')
@@ -94,7 +93,7 @@ while True: # loops back around to keep streams running
         for submission in reddit.subreddit(subs_to_monitor_str).mod.unmoderated(limit=None): # gets unmod queue items
             if last_scan is not None and submission.created_utc < last_scan: # if submission was made before the last scan, exits the loop
                 break
-            
+
             relevant_config = next((config for config in local_configs if config[subreddit_name_param] == str(submission.subreddit).lower()), False) # gets config for the sub from which the post came
             
             if relevant_config: # if the sub has added a config
@@ -117,16 +116,17 @@ while True: # loops back around to keep streams running
                         filename = current_dir + str(submission.id) + '.png' # defines path to download to
                         urllib.request.urlretrieve(url, filename) # downloads image to defined path
                     except urllib.error.HTTPError as e: # if image has been deleted/leads to a broken link
-                        print('Probably broken link.')
+                        print('Broken link.')
                         continue # skips to next post
                     
+                    print(url)
                     print('Reading text for identifying information...')
                     text_report = bii.read_text(filename, platforms_val, subreddit_check_val, banned_words_val)
                     if text_report is not None: # if a report was output by the function
                         if len(text_report) > 100: # reports greater than 100 characters long throw exceptions
                             text_report = text_report[:97] + '...' # trims report and adds ellipsis
                         # submission.report(text_report)
-                        print(url+text_report)
+                        print(text_report)
 
                     # print('Scanning post for faces...')
                     # if face_check_val is not None: # if a face was found by the function
