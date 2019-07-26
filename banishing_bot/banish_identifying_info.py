@@ -67,7 +67,7 @@ def read_text(filepath, platforms_val, subreddit_check_val, banned_words_val):
     clean_text = [no_end_punc(w) for w in clean_text] # trims words where last char is a punctuation
     clean_text = list(dict.fromkeys(clean_text)) # removes duplicates
 
-    username_candidates = [w for w in clean_text if not(w.lower() in stopwords_ls)] # removes "stop words"
+    username_candidates = [w for w in clean_text if not(w.lower() in stopword_ls)] # removes "stop words"
     username_candidates = [w for w in username_candidates if len(w)>3] # removes words with less than 4 chars (same reason as above)
     username_candidates = [w for w in username_candidates if not w.isdigit()] # removes numbers-only items (same reason again)
     username_candidates = [w for w in username_candidates if re.search(r"[^a-zA-Z0-9\.\_\-]+", w) is None] # removes words with special characters except ., _, and - (you know the drill)
