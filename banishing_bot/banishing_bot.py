@@ -127,7 +127,7 @@ while True: # loops back around to keep streams running
                         if len(text_report) > 100: # reports greater than 100 characters long throw exceptions
                             text_report = text_report[:97] + '...' # trims report and adds ellipsis
                         # submission.report(text_report)
-                        ii_logger(url, text_report)
+                        ii_logger(str(url), str(text_report))
 
                     # print('Scanning post for faces...')
                     # if face_check_val is not None: # if a face was found by the function
