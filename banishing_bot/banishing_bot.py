@@ -15,6 +15,7 @@ import psycopg2
 import pm_interface
 import banish_identifying_info as bii
 from db_interface import send_and_receive_configs
+from db_interface import ii_logger
 
 # Retrieves heroku env variables
 reddit_username = os.environ['reddit_username']
@@ -121,14 +122,13 @@ while True: # loops back around to keep streams running
                         print('Broken link.')
                         continue # skips to next post
                     
-                    print(url)
                     print('Reading text for identifying information...')
                     text_report = bii.read_text(filename, platforms_val, subreddit_check_val, banned_words_val)
                     if text_report is not None: # if a report was output by the function
                         if len(text_report) > 100: # reports greater than 100 characters long throw exceptions
                             text_report = text_report[:97] + '...' # trims report and adds ellipsis
                         # submission.report(text_report)
-                        print(text_report)
+                        ii_logger(url, text_report)
 
                     # print('Scanning post for faces...')
                     # if face_check_val is not None: # if a face was found by the function

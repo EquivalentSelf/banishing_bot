@@ -9,7 +9,7 @@ DATABASE_URL = os.environ['DATABASE_URL']
 
 def receive_configs():
     '''
-    INPUT: nothing
+    INPUT: None
     OUTPUT: Config list with the lastest timestamp
     '''
     sql_query = """
@@ -37,7 +37,7 @@ def receive_configs():
 def send_configs(time, configs):
     '''
     INPUT: Config list to be sent to db
-    OUTPUT: nothing
+    OUTPUT: None
     '''
     sql_query = """
         --sql
@@ -61,7 +61,7 @@ def send_configs(time, configs):
 def send_and_receive_configs(reddit, unread_configs, subreddit_name_param):
     '''
     INPUT: Unread configs to be checked
-    OUTPUT: nothing
+    OUTPUT: local configs
     '''
     local_configs_str = receive_configs()
     if local_configs_str is not None:
@@ -85,3 +85,27 @@ def send_and_receive_configs(reddit, unread_configs, subreddit_name_param):
             send_configs(time.time(), str(local_configs).replace("'", '"')) # sends seconds since the epoch and local configs to be sent (substitutes double quotes for single quotes, for SQL)
 
     return local_configs
+
+def ii_logger(url, ii_message):
+    '''
+    INPUT: URL to post and message with data about II found
+    OUTPUT: None
+    '''
+    sql_query = """
+        --sql
+        INSERT INTO ii_log ('URL', report)
+        VALUES ({}, '{}');
+        """
+    conn = None
+    try:
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        cur = conn.cursor()
+        cur.execute(sql_query.format(url, ii_message))
+        conn.commit()
+    except(Exception, psycopg2.Error) as e:
+        print("Error while working with PostgreSQL:", e)
+    finally:
+        # closes database connection.
+        if conn is not None:
+            cur.close()
+            conn.close()
