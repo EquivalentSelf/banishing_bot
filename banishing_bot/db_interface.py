@@ -94,7 +94,7 @@ def ii_logger(url, ii_message):
     sql_query = """
         --sql
         INSERT INTO ii_log (link, report)
-        VALUES ({}, '{}');
+        VALUES ('{}', '{}');
         """
     conn = None
     try:
